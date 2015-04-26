@@ -1,0 +1,556 @@
+{
+  "name": "isightprod",
+  "namespace": "isightprod",
+  "id": "33adb1b7-d6cd-474a-9ef7-db188f9ea4b4",
+  "containerDefinitions": [
+    {
+      "type": "docker",
+      "specific": {
+        "name": "redis:2.8",
+        "execute": {
+          "args": "-d -p 6379:6379"
+        }
+      },
+      "id": "redis$redis_2.8",
+      "name": "redis"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "name": "dockerfile/elasticsearch:latest",
+        "execute": {
+          "args": "-d -p 9200:9200 -p 9300:9300 -v /mnt/elasticsearch:/data",
+          "exec": "/elasticsearch/bin/elasticsearch --network.bind_host=localhost --network.publish_host=__TARGETIP__"
+        }
+      },
+      "id": "elasticsearch$dockerfile.elasticsearch_latest",
+      "name": "elasticsearch"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "buildScript": "consul/database/build.sh",
+        "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+        "execute": {
+          "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+          "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3 -join 10.1.0.105"
+        },
+        "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+      },
+      "id": "consul-database$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+      "name": "consul-database"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "buildScript": "consul/services/build.sh",
+        "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+        "execute": {
+          "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+          "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3 -join 10.1.0.105"
+        },
+        "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+      },
+      "id": "consul-services$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+      "name": "consul-services"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "buildScript": "consul/caches/build.sh",
+        "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+        "execute": {
+          "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+          "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3"
+        },
+        "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+      },
+      "id": "consul-caches-boot$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+      "name": "consul-caches-boot"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "buildScript": "consul/frontend/build.sh",
+        "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+        "execute": {
+          "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+          "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3 -join 10.1.0.105"
+        },
+        "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+      },
+      "id": "consul-frontend$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+      "name": "consul-frontend"
+    },
+    {
+      "type": "blank-container",
+      "id": "root",
+      "name": "root"
+    },
+    {
+      "type": "blank-container",
+      "id": "machine",
+      "name": "machine"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "repositoryUrl": "git@github.com:i-Sight/v5_nginx.git",
+        "execute": {
+          "args": "-e _TARGETIP_=__TARGETIP__ -p 3000:3000 -d",
+          "exec": "/bin/bash /run.sh"
+        },
+        "commit": "341ea4fc06d44bfcb1d34aa483b629cfc4d0d718"
+      },
+      "id": "nginxfe$341ea4fc06d44bfcb1d34aa483b629cfc4d0d718",
+      "name": "nginxfe"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "proxyPort": 10002,
+        "buildScript": "buildusers.sh",
+        "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+        "execute": {
+          "exec": "node /isight/srv/users.js"
+        },
+        "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+      },
+      "id": "users$068193e29b76b2532eda617d71856c5a4dcecb59",
+      "name": "users"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "proxyPort": 10005,
+        "buildScript": "buildperms.sh",
+        "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+        "execute": {
+          "exec": "node /isight/srv/permissions.js"
+        },
+        "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+      },
+      "id": "permissions$068193e29b76b2532eda617d71856c5a4dcecb59",
+      "name": "permissions"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "proxyPort": 10001,
+        "buildScript": "buildbl.sh",
+        "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+        "execute": {
+          "exec": "node /isight/srv/business-logic.js"
+        },
+        "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+      },
+      "id": "business-logic$068193e29b76b2532eda617d71856c5a4dcecb59",
+      "name": "business-logic"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "proxyPort": 10003,
+        "buildScript": "buildaudit.sh",
+        "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+        "execute": {
+          "exec": "node /isight/srv/audit.js"
+        },
+        "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+      },
+      "id": "audit$068193e29b76b2532eda617d71856c5a4dcecb59",
+      "name": "audit"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "proxyPort": 10006,
+        "buildScript": "buildemail.sh",
+        "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+        "execute": {
+          "exec": "node /isight/srv/emails.js"
+        },
+        "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+      },
+      "id": "emails$068193e29b76b2532eda617d71856c5a4dcecb59",
+      "name": "emails"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "proxyPort": 10004,
+        "buildScript": "buildsearch.sh",
+        "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+        "execute": {
+          "exec": "node /isight/srv/search.js"
+        },
+        "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+      },
+      "id": "search$068193e29b76b2532eda617d71856c5a4dcecb59",
+      "name": "search"
+    },
+    {
+      "type": "docker",
+      "specific": {
+        "buildScript": "buildfe.sh",
+        "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+        "execute": {
+          "exec": "/bin/bash -c 'cd /isight/isight; node index.js'"
+        },
+        "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+      },
+      "id": "frontend$068193e29b76b2532eda617d71856c5a4dcecb59",
+      "name": "frontend"
+    }
+  ],
+  "topology": {
+    "containers": {
+      "root-16f4f95b": {
+        "id": "root-16f4f95b",
+        "containedBy": "root-16f4f95b",
+        "containerDefinitionId": "root",
+        "type": "blank-container",
+        "contains": [
+          "machine-bae48723",
+          "machine-ad9f9360",
+          "machine-9412afa5",
+          "machine-8369bbe6"
+        ],
+        "specific": {}
+      },
+      "machine-bae48723": {
+        "id": "machine-bae48723",
+        "containedBy": "root-16f4f95b",
+        "containerDefinitionId": "machine",
+        "type": "blank-container",
+        "contains": [
+          "consul-frontend-e4236f2f$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+          "nginxfe-7d2a3e95$341ea4fc06d44bfcb1d34aa483b629cfc4d0d718",
+          "frontend-809f121$068193e29b76b2532eda617d71856c5a4dcecb59",
+          "frontend-e33e4a22$068193e29b76b2532eda617d71856c5a4dcecb59"
+        ],
+        "specific": {
+          "ipAddress": "10.1.0.101",
+          "user": "cexadministrator",
+          "identityFile": "/home/cexadministrator/keys/nscale-key"
+        }
+      },
+      "machine-ad9f9360": {
+        "id": "machine-ad9f9360",
+        "containedBy": "root-16f4f95b",
+        "containerDefinitionId": "machine",
+        "type": "blank-container",
+        "contains": [
+          "consul-services-86299070$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+          "users-340ca5c3$068193e29b76b2532eda617d71856c5a4dcecb59",
+          "permissions-db3bd337$068193e29b76b2532eda617d71856c5a4dcecb59",
+          "business-logic-53f4eab$068193e29b76b2532eda617d71856c5a4dcecb59",
+          "audit-837fe5ce$068193e29b76b2532eda617d71856c5a4dcecb59",
+          "audit-46d8db40$068193e29b76b2532eda617d71856c5a4dcecb59",
+          "emails-dffaa0e0$068193e29b76b2532eda617d71856c5a4dcecb59",
+          "search-a90494f6$068193e29b76b2532eda617d71856c5a4dcecb59"
+        ],
+        "specific": {
+          "ipAddress": "10.1.0.103",
+          "user": "cexadministrator",
+          "identityFile": "/home/cexadministrator/keys/nscale-key"
+        }
+      },
+      "machine-9412afa5": {
+        "id": "machine-9412afa5",
+        "containedBy": "root-16f4f95b",
+        "containerDefinitionId": "machine",
+        "type": "blank-container",
+        "contains": [
+          "redis-b7e44819$redis_2.8",
+          "elasticsearch-c0e3788f$dockerfile.elasticsearch_latest",
+          "consul-caches-boot-59ea2935$5dd7b78bc9504043f8c7760518a4e38d5269800f"
+        ],
+        "specific": {
+          "ipAddress": "10.1.0.105",
+          "user": "cexadministrator",
+          "identityFile": "/home/cexadministrator/keys/nscale-key"
+        }
+      },
+      "machine-8369bbe6": {
+        "id": "machine-8369bbe6",
+        "containedBy": "root-16f4f95b",
+        "containerDefinitionId": "machine",
+        "type": "blank-container",
+        "contains": [
+          "consul-database-d283735f$5dd7b78bc9504043f8c7760518a4e38d5269800f"
+        ],
+        "specific": {
+          "ipAddress": "10.1.0.110",
+          "user": "cexadministrator",
+          "identityFile": "/home/cexadministrator/keys/nscale-key"
+        }
+      },
+      "redis-b7e44819$redis_2.8": {
+        "id": "redis-b7e44819$redis_2.8",
+        "containedBy": "machine-9412afa5",
+        "containerDefinitionId": "redis$redis_2.8",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "name": "redis:2.8",
+          "execute": {
+            "args": "-d -p 6379:6379"
+          }
+        }
+      },
+      "elasticsearch-c0e3788f$dockerfile.elasticsearch_latest": {
+        "id": "elasticsearch-c0e3788f$dockerfile.elasticsearch_latest",
+        "containedBy": "machine-9412afa5",
+        "containerDefinitionId": "elasticsearch$dockerfile.elasticsearch_latest",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "name": "dockerfile/elasticsearch:latest",
+          "execute": {
+            "args": "-d -p 9200:9200 -p 9300:9300 -v /mnt/elasticsearch:/data",
+            "exec": "/elasticsearch/bin/elasticsearch --network.bind_host=localhost --network.publish_host=__TARGETIP__"
+          }
+        }
+      },
+      "consul-database-d283735f$5dd7b78bc9504043f8c7760518a4e38d5269800f": {
+        "id": "consul-database-d283735f$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "containedBy": "machine-8369bbe6",
+        "containerDefinitionId": "consul-database$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "buildScript": "consul/database/build.sh",
+          "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+          "execute": {
+            "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+            "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3 -join 10.1.0.105"
+          },
+          "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+        }
+      },
+      "consul-services-86299070$5dd7b78bc9504043f8c7760518a4e38d5269800f": {
+        "id": "consul-services-86299070$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "consul-services$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "buildScript": "consul/services/build.sh",
+          "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+          "execute": {
+            "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+            "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3 -join 10.1.0.105"
+          },
+          "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+        }
+      },
+      "consul-caches-boot-59ea2935$5dd7b78bc9504043f8c7760518a4e38d5269800f": {
+        "id": "consul-caches-boot-59ea2935$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "containedBy": "machine-9412afa5",
+        "containerDefinitionId": "consul-caches-boot$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "buildScript": "consul/caches/build.sh",
+          "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+          "execute": {
+            "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+            "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3"
+          },
+          "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+        }
+      },
+      "consul-frontend-e4236f2f$5dd7b78bc9504043f8c7760518a4e38d5269800f": {
+        "id": "consul-frontend-e4236f2f$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "containedBy": "machine-bae48723",
+        "containerDefinitionId": "consul-frontend$5dd7b78bc9504043f8c7760518a4e38d5269800f",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "buildScript": "consul/frontend/build.sh",
+          "repositoryUrl": "git@github.com:nearform/isightnscale.git",
+          "execute": {
+            "args": "-d -h $HOSTNAME -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 -p 53:53/udp",
+            "exec": "-server -advertise __TARGETIP__ -bootstrap-expect 3 -join 10.1.0.105"
+          },
+          "commit": "5dd7b78bc9504043f8c7760518a4e38d5269800f"
+        }
+      },
+      "nginxfe-7d2a3e95$341ea4fc06d44bfcb1d34aa483b629cfc4d0d718": {
+        "id": "nginxfe-7d2a3e95$341ea4fc06d44bfcb1d34aa483b629cfc4d0d718",
+        "containedBy": "machine-bae48723",
+        "containerDefinitionId": "nginxfe$341ea4fc06d44bfcb1d34aa483b629cfc4d0d718",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "repositoryUrl": "git@github.com:i-Sight/v5_nginx.git",
+          "execute": {
+            "args": "-e _TARGETIP_=__TARGETIP__ -p 3000:3000 -d",
+            "exec": "/bin/bash /run.sh"
+          },
+          "commit": "341ea4fc06d44bfcb1d34aa483b629cfc4d0d718"
+        }
+      },
+      "users-340ca5c3$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "users-340ca5c3$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "users$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "proxyPort": 10002,
+          "buildScript": "buildusers.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "node /isight/srv/users.js",
+            "args": "-e PORT=10002 -p 11000:10002 --dns 172.17.42.1 -d"
+          },
+          "servicePort": 11000,
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "permissions-db3bd337$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "permissions-db3bd337$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "permissions$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "proxyPort": 10005,
+          "buildScript": "buildperms.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "node /isight/srv/permissions.js",
+            "args": "-e POSTGRESQL=1 -e PORT=10005 -p 12000:10005 --dns 172.17.42.1 -d"
+          },
+          "servicePort": 12000,
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "business-logic-53f4eab$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "business-logic-53f4eab$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "business-logic$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "proxyPort": 10001,
+          "buildScript": "buildbl.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "node /isight/srv/business-logic.js",
+            "args": "-e POSTGRESQL=1 -e PORT=10001 -p 13000:10001 --dns 172.17.42.1 -d"
+          },
+          "servicePort": 13000,
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "audit-837fe5ce$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "audit-837fe5ce$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "audit$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "proxyPort": 10003,
+          "buildScript": "buildaudit.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "node /isight/srv/audit.js",
+            "args": "-e POSTGRESQL=1 -e PORT=10003 -p 14000:10003 --dns 172.17.42.1 -d"
+          },
+          "servicePort": 1400,
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "audit-46d8db40$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "audit-46d8db40$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "audit$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "proxyPort": 10003,
+          "buildScript": "buildaudit.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "node /isight/srv/audit.js",
+            "args": "-e POSTGRESQL=1 -e PORT=10003 -p 14000:10003 --dns 172.17.42.1 -d"
+          },
+          "servicePort": 1401,
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "emails-dffaa0e0$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "emails-dffaa0e0$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "emails$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "proxyPort": 10006,
+          "buildScript": "buildemail.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "node /isight/srv/emails.js",
+            "args": "-e POSTGRESQL=1 -e PORT=10003 -p 16000:10003 --dns 172.17.42.1 -d"
+          },
+          "servicePort": 1500,
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "search-a90494f6$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "search-a90494f6$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-ad9f9360",
+        "containerDefinitionId": "search$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "proxyPort": 10004,
+          "buildScript": "buildsearch.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "node /isight/srv/search.js",
+            "args": "-e PORT=10004 -p 15001:10004 --dns 172.17.42.1 -d"
+          },
+          "servicePort": 1600,
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "frontend-809f121$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "frontend-809f121$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-bae48723",
+        "containerDefinitionId": "frontend$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "buildScript": "buildfe.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "/bin/bash -c 'cd /isight/isight; node index.js'",
+            "args": "-e MONITORING_INTERFACE=0.0.0.0 -e PORT=8000 -p 8000:8000 -p 8200:8002 --dns 172.17.42.1 -d"
+          },
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      },
+      "frontend-e33e4a22$068193e29b76b2532eda617d71856c5a4dcecb59": {
+        "id": "frontend-e33e4a22$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "containedBy": "machine-bae48723",
+        "containerDefinitionId": "frontend$068193e29b76b2532eda617d71856c5a4dcecb59",
+        "type": "docker",
+        "contains": [],
+        "specific": {
+          "buildScript": "buildfe.sh",
+          "repositoryUrl": "git@github.com:i-Sight/isight_main_v5_beta.git#develop",
+          "execute": {
+            "exec": "/bin/bash -c 'cd /isight/isight; node index.js'",
+            "args": "-e MONITORING_INTERFACE=0.0.0.0 -e PORT=8000 -p 8003:8000 -p 8203:8002 --dns 172.17.42.1 -d"
+          },
+          "commit": "068193e29b76b2532eda617d71856c5a4dcecb59"
+        }
+      }
+    },
+    "name": "beta"
+  }
+}

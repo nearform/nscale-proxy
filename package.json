@@ -1,0 +1,35 @@
+{
+  "name": "nscale-proxy",
+  "description": "nscale microservice proxy container module",
+  "keywords": [
+    "nearForm",
+    "deployer",
+    "nscale",
+    "proxy"
+  ],
+  "version": "0.1.0",
+  "license": "Artistic License 2.0",
+  "author": "Peter Elger (http://nearform.com/)",
+  "contributors": [
+    "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)",
+    "Matteo Collina <matteo.collina@nearform.com>"
+  ],
+  "engines": {
+    "node": "*"
+  },
+  "pre-commit": "test",
+  "dependencies": {
+    "lodash": "^3.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nearform/nscale-proxy.git"
+  },
+  "scripts": {
+    "test": "mocha test/**/*Test.js"
+  },
+  "devDependencies": {
+    "mocha": "^1.21.5",
+    "pre-commit": "0.0.9"
+  }
+}
