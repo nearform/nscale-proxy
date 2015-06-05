@@ -14,10 +14,10 @@
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)",
     "Matteo Collina <matteo.collina@nearform.com>"
   ],
+  "main": "main",
   "engines": {
     "node": "*"
   },
-  "pre-commit": "test",
   "dependencies": {
     "lodash": "^3.6.0"
   },

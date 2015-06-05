@@ -24,7 +24,7 @@ describe('compiler test', function() {
   it('should generate a correct ha proxy config file', function(done){
     var analyzed = require(__dirname + '/../fixture/isbeta');
     var expected = fs.readFileSync(__dirname + '/../fixture/isbetaExpected.config', 'utf8');
-    generator.generate(analyzed, function(err, proxyConfig) {
+    generator.generate(analyzed, analyzed, function(err, proxyConfig) {
       assert(err === null);
       assert.equal(proxyConfig, expected);
       done();
